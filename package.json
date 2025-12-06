@@ -1,0 +1,66 @@
+{
+  "name": "@lab402/sdk",
+  "version": "1.0.0",
+  "description": "Autonomous Laboratory & Compute Protocol - Remote lab analysis with unified 402 payments",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "bin": {
+    "lab402": "./bin/lab402.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "laboratory",
+    "research",
+    "compute",
+    "ai",
+    "http-402",
+    "micropayments",
+    "http-403",
+    "identity",
+    "solana",
+    "blockchain",
+    "autonomous",
+    "sequencing",
+    "spectroscopy",
+    "microscopy"
+  ],
+  "author": "Lab402+ Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lab402Plus/Lab402.git"
+  },
+  "homepage": "https://lab402.io",
+  "dependencies": {
+    "@solana/web3.js": "^1.87.6",
+    "axios": "^1.6.2",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/ws": "^8.5.10",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ]
+}

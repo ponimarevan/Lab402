@@ -1,0 +1,15 @@
+lib/
+spec/
+*.ts
+!*.d.ts
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+.gitignore
+.git
+.vscode
+.idea
+coverage/
+*.log
+.env
+.env.local
