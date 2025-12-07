@@ -124,6 +124,13 @@ export type EventType =
   | 'report.ready'
   | 'lab.selected'
   | 'lab.fallback'
+  | 'batch.created'
+  | 'batch.started'
+  | 'batch.progress'
+  | 'batch.sample.completed'
+  | 'batch.sample.failed'
+  | 'batch.completed'
+  | 'batch.failed'
   | 'error';
 
 export interface Lab402Event {
@@ -194,4 +201,70 @@ export interface LabPricing {
   quality: number;
   eta: string; // "2 hours"
   available: boolean;
+}
+
+// Batch Processing Types
+
+export interface BatchSample {
+  id: string;
+  data: any;
+  metadata?: Record<string, any>;
+}
+
+export interface BatchRequest {
+  samples: BatchSample[];
+  instrument: InstrumentType;
+  compute?: ComputeRequirements;
+  ai?: AIRequirements;
+  routing?: RoutingOptions;
+  priority?: 'low' | 'normal' | 'high';
+}
+
+export interface BatchPricing {
+  baseCost: number;
+  totalSamples: number;
+  discountRate: number; // 0-1
+  discountedCost: number;
+  savings: number;
+  perSampleCost: number;
+}
+
+export interface SampleResult {
+  sampleId: string;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  analysis?: any;
+  aiReport?: AIReport;
+  error?: string;
+  startedAt?: number;
+  completedAt?: number;
+  processingTime?: number;
+}
+
+export interface BatchProgress {
+  total: number;
+  pending: number;
+  running: number;
+  completed: number;
+  failed: number;
+  percentage: number;
+  estimatedTimeRemaining?: number; // ms
+}
+
+export interface BatchAnalysisConfig {
+  batchId: string;
+  request: BatchRequest;
+  pricing: BatchPricing;
+  parallelism: number; // How many samples to process simultaneously
+}
+
+export interface BatchReport {
+  batchId: string;
+  totalSamples: number;
+  completedSamples: number;
+  failedSamples: number;
+  averageProcessingTime: number;
+  totalCost: number;
+  results: SampleResult[];
+  aggregateStatistics?: Record<string, any>;
+  generatedAt: number;
 }
