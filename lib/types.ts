@@ -40,6 +40,7 @@ export interface AnalysisRequest {
   ai?: AIRequirements;
   duration?: number; // Expected duration (ms)
   priority?: 'low' | 'normal' | 'high';
+  routing?: RoutingOptions; // Multi-lab routing
 }
 
 export interface UnifiedInvoice {
@@ -121,6 +122,8 @@ export type EventType =
   | 'ai.started'
   | 'ai.completed'
   | 'report.ready'
+  | 'lab.selected'
+  | 'lab.fallback'
   | 'error';
 
 export interface Lab402Event {
@@ -135,4 +138,60 @@ export interface InstrumentCapabilities {
   resolution: string;
   throughput: string;
   dataFormat: string[];
+}
+
+// Multi-Lab Routing Types
+
+export interface LabInfo {
+  id: string;
+  name: string;
+  location: string; // "Boston, MA, USA"
+  country: string; // "US"
+  instruments: InstrumentType[];
+  pricing: PricingTier;
+  quality: number; // 1-5 stars
+  availability: number; // 0-100%
+  uptime: number; // 0-100% (e.g., 99.9)
+  currentLoad: number; // 0-100%
+  coordinates?: { lat: number; lon: number };
+  certifications: string[]; // ["ISO-9001", "CLIA"]
+}
+
+export type RoutingStrategy = 
+  | 'cost-optimized'
+  | 'fastest'
+  | 'highest-quality'
+  | 'nearest'
+  | 'balanced';
+
+export interface RoutingOptions {
+  strategy: RoutingStrategy;
+  maxCost?: number;
+  minQuality?: number; // 1-5
+  maxDistance?: number; // km
+  preferredLocations?: string[]; // ["US", "EU"]
+  excludeLabs?: string[]; // Lab IDs to exclude
+  requireCertifications?: string[];
+  fallback?: LabFallback[];
+}
+
+export interface LabFallback {
+  lab: string; // Lab ID
+  priority: number; // 1 = first choice
+}
+
+export interface LabSelection {
+  lab: LabInfo;
+  score: number; // Routing score
+  reasoning: string;
+  alternatives: LabInfo[];
+}
+
+export interface LabPricing {
+  lab: string;
+  labName: string;
+  price: number;
+  quality: number;
+  eta: string; // "2 hours"
+  available: boolean;
 }
