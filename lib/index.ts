@@ -4,6 +4,8 @@ export { Payment402 } from './Payment402';
 export { Identity403 } from './Identity403';
 export { LabRegistry } from './LabRegistry';
 export { Router } from './Router';
+export { BatchAnalysis } from './BatchAnalysis';
+export { BatchManager } from './BatchManager';
 
 export type {
   Lab402Config,
@@ -27,5 +29,12 @@ export type {
   RoutingOptions,
   LabFallback,
   LabSelection,
-  LabPricing
+  LabPricing,
+  BatchSample,
+  BatchRequest,
+  BatchPricing,
+  SampleResult,
+  BatchProgress,
+  BatchAnalysisConfig,
+  BatchReport
 } from './types';

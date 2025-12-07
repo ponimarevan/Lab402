@@ -4,6 +4,8 @@ import { Payment402 } from './Payment402';
 import { Identity403 } from './Identity403';
 import { LabRegistry } from './LabRegistry';
 import { Router } from './Router';
+import { BatchManager } from './BatchManager';
+import { BatchAnalysis } from './BatchAnalysis';
 import type {
   Lab402Config,
   AnalysisRequest,
@@ -16,7 +18,8 @@ import type {
   InstrumentType,
   LabInfo,
   LabPricing,
-  LabSelection
+  LabSelection,
+  BatchRequest
 } from './types';
 
 export class Lab402 extends EventEmitter {
@@ -25,6 +28,7 @@ export class Lab402 extends EventEmitter {
   private identity: Identity403;
   private registry: LabRegistry;
   private router: Router;
+  private batchManager: BatchManager;
   private researcherIdentity?: ResearcherIdentity;
   private activeAnalyses: Map<string, Analysis>;
 
@@ -43,6 +47,7 @@ export class Lab402 extends EventEmitter {
     this.identity = new Identity403(this.config.researcher);
     this.registry = new LabRegistry();
     this.router = new Router(this.registry);
+    this.batchManager = new BatchManager(this.payment);
     this.activeAnalyses = new Map();
 
     this.initialize();
@@ -271,6 +276,44 @@ export class Lab402 extends EventEmitter {
 
   getActiveAnalyses(): Analysis[] {
     return Array.from(this.activeAnalyses.values());
+  }
+
+  async createBatch(request: BatchRequest): Promise<BatchAnalysis> {
+    if (!this.researcherIdentity) {
+      throw new Error('Researcher identity not verified');
+    }
+
+    // Check access permissions
+    await this.identity.checkAccess(request.instrument, this.researcherIdentity);
+
+    console.log(`\n🧪 Creating batch analysis...`);
+    console.log(`Instrument: ${request.instrument}`);
+    console.log(`Samples: ${request.samples.length}`);
+
+    // Get base price for instrument
+    const basePrice = this.calculateInstrumentCost(request.instrument);
+
+    // Create batch
+    const batch = this.batchManager.createBatch(request, basePrice);
+
+    // Forward batch events
+    batch.on('batch.started', (event) => this.emit('batch.started', event));
+    batch.on('batch.progress', (event) => this.emit('batch.progress', event));
+    batch.on('batch.sample.completed', (event) => this.emit('batch.sample.completed', event));
+    batch.on('batch.sample.failed', (event) => this.emit('batch.sample.failed', event));
+    batch.on('batch.completed', (event) => this.emit('batch.completed', event));
+
+    this.emitEvent('batch.created', {
+      batchId: batch.id,
+      sampleCount: batch.sampleCount,
+      pricing: batch.pricing
+    });
+
+    return batch;
+  }
+
+  getBatchManager(): BatchManager {
+    return this.batchManager;
   }
 
   async close(): Promise<void> {
