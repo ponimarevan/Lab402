@@ -2,6 +2,8 @@ import { EventEmitter } from 'events';
 import { Analysis } from './Analysis';
 import { Payment402 } from './Payment402';
 import { Identity403 } from './Identity403';
+import { LabRegistry } from './LabRegistry';
+import { Router } from './Router';
 import type {
   Lab402Config,
   AnalysisRequest,
@@ -11,13 +13,18 @@ import type {
   ResearcherIdentity,
   EventType,
   Lab402Event,
-  InstrumentType
+  InstrumentType,
+  LabInfo,
+  LabPricing,
+  LabSelection
 } from './types';
 
 export class Lab402 extends EventEmitter {
   private config: Required<Lab402Config>;
   private payment: Payment402;
   private identity: Identity403;
+  private registry: LabRegistry;
+  private router: Router;
   private researcherIdentity?: ResearcherIdentity;
   private activeAnalyses: Map<string, Analysis>;
 
@@ -34,6 +41,8 @@ export class Lab402 extends EventEmitter {
 
     this.payment = new Payment402(this.config.wallet, this.config.endpoint);
     this.identity = new Identity403(this.config.researcher);
+    this.registry = new LabRegistry();
+    this.router = new Router(this.registry);
     this.activeAnalyses = new Map();
 
     this.initialize();
@@ -53,8 +62,47 @@ export class Lab402 extends EventEmitter {
     // Check access permissions
     await this.identity.checkAccess(analysisRequest.instrument, this.researcherIdentity);
 
-    // Generate unified 402 invoice
-    const invoice = this.generateInvoice(analysisRequest);
+    // Select best lab using routing
+    let selectedLab: LabSelection | undefined;
+    
+    if (analysisRequest.routing) {
+      try {
+        selectedLab = this.router.selectLab(
+          analysisRequest.instrument,
+          analysisRequest.routing
+        );
+        
+        console.log(`Selected lab: ${selectedLab.lab.name}`);
+        console.log(`Reasoning: ${selectedLab.reasoning}`);
+        
+        this.emitEvent('lab.selected', {
+          lab: selectedLab.lab,
+          reasoning: selectedLab.reasoning,
+          alternatives: selectedLab.alternatives
+        });
+      } catch (error) {
+        // Try fallback if primary selection fails
+        const fallbackLab = this.router.tryFallback(
+          analysisRequest.instrument,
+          analysisRequest.routing
+        );
+        
+        if (fallbackLab) {
+          console.log(`Using fallback lab: ${fallbackLab.name}`);
+          selectedLab = {
+            lab: fallbackLab,
+            score: 0,
+            reasoning: 'Fallback lab',
+            alternatives: []
+          };
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    // Generate unified 402 invoice (use selected lab pricing if available)
+    const invoice = this.generateInvoice(analysisRequest, selectedLab?.lab);
 
     // Create analysis instance
     const analysis = new Analysis({
@@ -64,6 +112,11 @@ export class Lab402 extends EventEmitter {
       invoice
     });
 
+    // Store selected lab info in analysis
+    if (selectedLab) {
+      (analysis as any).selectedLab = selectedLab.lab;
+    }
+
     this.activeAnalyses.set(analysis.id, analysis);
 
     // Log access
@@ -72,17 +125,18 @@ export class Lab402 extends EventEmitter {
     this.emitEvent('analysis.requested', { 
       analysisId: analysis.id,
       instrument: analysisRequest.instrument,
-      invoice 
+      invoice,
+      selectedLab: selectedLab?.lab
     });
 
     return analysis;
   }
 
-  private generateInvoice(request: AnalysisRequest): UnifiedInvoice {
-    const pricing = this.getPricingForTier(request.compute?.tier || 'standard');
+  private generateInvoice(request: AnalysisRequest, lab?: LabInfo): UnifiedInvoice {
+    const pricing = lab?.pricing || this.getPricingForTier(request.compute?.tier || 'standard');
 
     // Calculate costs
-    const instrumentCost = this.calculateInstrumentCost(request.instrument);
+    const instrumentCost = this.calculateInstrumentCost(request.instrument, lab);
     const computeCost = request.compute 
       ? this.calculateComputeCost(request.compute, pricing)
       : 0;
@@ -105,7 +159,7 @@ export class Lab402 extends EventEmitter {
     };
   }
 
-  private calculateInstrumentCost(instrument: InstrumentType): number {
+  private calculateInstrumentCost(instrument: InstrumentType, lab?: LabInfo): number {
     const baseCosts: Record<InstrumentType, number> = {
       'dna-sequencer': 50.00,
       'spectroscopy': 10.00,
@@ -115,7 +169,14 @@ export class Lab402 extends EventEmitter {
       'x-ray-diffraction': 80.00
     };
 
-    return baseCosts[instrument] || 10.00;
+    const baseCost = baseCosts[instrument] || 10.00;
+    
+    // Apply lab pricing multiplier if available
+    if (lab?.pricing.instrumentRate) {
+      return baseCost * lab.pricing.instrumentRate;
+    }
+
+    return baseCost;
   }
 
   private calculateComputeCost(compute: any, pricing: PricingTier): number {
@@ -194,6 +255,18 @@ export class Lab402 extends EventEmitter {
       this.getPricingForTier('performance'),
       this.getPricingForTier('extreme')
     ];
+  }
+
+  getAllLabs(): LabInfo[] {
+    return this.registry.getAllLabs();
+  }
+
+  getLabsByInstrument(instrument: InstrumentType): LabInfo[] {
+    return this.registry.getLabsByInstrument(instrument);
+  }
+
+  getLabPricing(instrument: InstrumentType): LabPricing[] {
+    return this.router.getLabPricing(instrument);
   }
 
   getActiveAnalyses(): Analysis[] {
