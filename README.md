@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/ponimarevan/Lab402/main/assets/logo.png" alt="Lab402+" width="200" />
+  <img src="https://raw.githubusercontent.com/Lab402Plus/Lab402/main/assets/logo.png" alt="Lab402+" width="200" />
   
   # Lab402+
   
@@ -44,7 +44,8 @@ Lab402+ enables researchers to remotely run laboratory analyses (DNA sequencing,
 
 ### 🔬 Laboratory Access
 - **6 Instruments**: DNA sequencer, spectroscopy, microscopy, mass-spec, NMR, X-ray
-- **Global Access**: Use world-class instruments remotely
+- **Global Network**: 5+ labs worldwide (MIT, Stanford, Oxford, Tokyo, Singapore)
+- **Smart Routing**: Automatic lab selection by cost/speed/quality
 - **Auto-Start**: Instruments begin after payment
 - **403 Access Control**: Clearance-based permissions
 
@@ -129,6 +130,100 @@ const report = await analysis.getReport();
 console.log('Summary:', report.summary);
 console.log('Findings:', report.findings);
 console.log('Confidence:', report.confidence);
+```
+
+---
+
+## 🌍 Multi-Lab Routing
+
+Lab402+ automatically selects the best laboratory from a global network based on your requirements.
+
+### Global Lab Network
+
+| Lab | Location | Quality | Instruments | Certifications |
+|-----|----------|---------|-------------|----------------|
+| **MIT BioLab** | Boston, USA | ⭐⭐⭐⭐⭐ | DNA, Mass-Spec, NMR | ISO-9001, CLIA, CAP |
+| **Stanford BioLab** | California, USA | ⭐⭐⭐⭐½ | DNA, Spectro, Microscopy | ISO-9001, CLIA |
+| **Oxford Research** | Oxford, UK | ⭐⭐⭐⭐⭐ | DNA, X-ray, NMR | ISO-9001, UKAS |
+| **Tokyo Biotech** | Tokyo, Japan | ⭐⭐⭐⭐ | Spectro, Microscopy, Mass-Spec | ISO-9001 |
+| **Singapore BioLab** | Singapore | ⭐⭐⭐⭐⭐ | DNA, Microscopy, Spectro | ISO-9001, CLIA, CAP |
+
+### Routing Strategies
+
+```typescript
+// 1. Cost-Optimized: Choose cheapest lab
+routing: { strategy: 'cost-optimized', maxCost: 80 }
+
+// 2. Fastest: Choose lab with lowest load
+routing: { strategy: 'fastest' }
+
+// 3. Highest Quality: Choose best-rated lab
+routing: { strategy: 'highest-quality', minQuality: 4.5 }
+
+// 4. Nearest: Choose closest lab
+routing: { strategy: 'nearest' }
+
+// 5. Balanced: Optimal mix of all factors
+routing: { strategy: 'balanced' }
+```
+
+### Example: Automatic Lab Selection
+
+```typescript
+const analysis = await lab.request({
+  instrument: 'dna-sequencer',
+  sample: sampleData,
+  routing: {
+    strategy: 'cost-optimized',
+    maxCost: 80.00,
+    minQuality: 4,
+    preferredLocations: ['US']
+  }
+});
+
+// SDK automatically selected: Stanford BioLab ($48, Quality 4.5)
+console.log('Selected:', analysis.selectedLab.name);
+console.log('Cost:', analysis.getInvoice().totalCost);
+```
+
+### Compare Lab Pricing
+
+```typescript
+const pricing = lab.getLabPricing('dna-sequencer');
+
+// Returns:
+// [
+//   { lab: 'Stanford', price: 48, quality: 4.5, eta: '1-2h' },
+//   { lab: 'MIT', price: 55, quality: 5, eta: '30min' },
+//   { lab: 'Oxford', price: 60, quality: 5, eta: '4h' }
+// ]
+```
+
+### Fallback System
+
+```typescript
+routing: {
+  strategy: 'fastest',
+  fallback: [
+    { lab: 'mit-biolab', priority: 1 },
+    { lab: 'stanford-lab', priority: 2 }
+  ]
+}
+// If MIT unavailable → automatically uses Stanford
+```
+
+### Advanced Filtering
+
+```typescript
+routing: {
+  strategy: 'balanced',
+  maxCost: 100.00,              // Budget limit
+  minQuality: 4,                // Minimum 4/5 stars
+  maxDistance: 5000,            // Within 5000km
+  preferredLocations: ['US', 'EU'],  // Prefer these regions
+  excludeLabs: ['lab-xyz'],     // Exclude specific labs
+  requireCertifications: ['CLIA', 'CAP']  // Required certs
+}
 ```
 
 ---

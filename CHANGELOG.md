@@ -1,5 +1,75 @@
 # Changelog
 
+## v1.1.0 - Multi-Lab Routing (December 2025)
+
+### 🌍 Major Update: Multi-Lab Routing
+
+**Added:**
+- **Lab Registry**: Global network of 5+ labs (MIT, Stanford, Oxford, Tokyo, Singapore)
+- **Smart Routing**: Automatic lab selection based on strategy
+- **5 Routing Strategies**:
+  - `cost-optimized`: Choose cheapest lab
+  - `fastest`: Choose lab with lowest load
+  - `highest-quality`: Choose highest-rated lab
+  - `nearest`: Choose closest lab (geographic)
+  - `balanced`: Optimal balance of all factors
+- **Lab Comparison**: View pricing across all labs
+- **Fallback System**: Automatic failover to backup labs
+- **Geographic Filtering**: Prefer specific countries/regions
+- **Quality Requirements**: Set minimum quality ratings
+- **Certification Requirements**: Require specific certifications
+- **Cost Limits**: Set maximum cost budgets
+- **Real-time Lab Info**: Load, availability, uptime metrics
+
+**New API:**
+```typescript
+const analysis = await lab.request({
+  instrument: 'dna-sequencer',
+  routing: {
+    strategy: 'cost-optimized',
+    maxCost: 80.00,
+    minQuality: 4,
+    preferredLocations: ['US', 'EU']
+  }
+});
+
+// Get selected lab
+console.log(analysis.selectedLab);
+
+// Compare pricing
+const pricing = lab.getLabPricing('dna-sequencer');
+
+// View all labs
+const allLabs = lab.getAllLabs();
+```
+
+**Labs in Network:**
+- MIT BioLab (Boston, USA) - Quality 5/5
+- Stanford BioLab (California, USA) - Quality 4.5/5
+- Oxford Research Lab (UK) - Quality 5/5
+- Tokyo Biotech Center (Japan) - Quality 4/5
+- Singapore BioLab (Singapore) - Quality 5/5
+
+**Features:**
+- Automatic best lab selection
+- Load balancing across network
+- Geographic routing optimization
+- Quality-based filtering
+- Cost optimization
+- Fallback handling
+- Real-time availability
+
+**Example:**
+```typescript
+// SDK picks Stanford (cheapest at $48)
+const analysis = await lab.request({
+  instrument: 'dna-sequencer',
+  routing: { strategy: 'cost-optimized' }
+});
+```
+
+---
+
 ## Initial Release (December 2025)
 
 ### Core Features
