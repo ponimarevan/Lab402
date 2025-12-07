@@ -1,5 +1,81 @@
 # Changelog
 
+## v1.2.0 - Batch Processing (December 2025)
+
+### 🧪 Major Update: Batch Processing
+
+Process hundreds or thousands of samples simultaneously with automatic parallelization and volume discounts!
+
+**Added:**
+- **BatchAnalysis**: Process multiple samples in parallel
+- **BatchManager**: Manage and track multiple batches
+- **Volume Discounts**: 
+  - 10+ samples: 10% discount
+  - 50+ samples: 15% discount
+  - 100+ samples: 20% discount
+  - 500+ samples: 25% discount
+  - 1000+ samples: 30% discount
+- **Parallel Processing**: Up to 200 samples simultaneously
+- **Progress Tracking**: Real-time progress updates
+- **Batch Reports**: Aggregate statistics and results
+- **CSV Export**: Export batch results to CSV
+- **Smart Scheduling**: Automatic parallelism based on volume
+
+**New API:**
+```typescript
+const batch = await lab.createBatch({
+  instrument: 'dna-sequencer',
+  samples: [sample1, sample2, ...sample100],
+  compute: { gpu: 16 },
+  ai: { model: 'bio-gpt', interpretation: true }
+});
+
+// Track progress
+batch.on('batch.progress', (e) => {
+  console.log(`${e.data.progress.percentage}% complete`);
+});
+
+await batch.start();
+
+// Get results
+const report = batch.generateReport();
+const csv = batch.exportToCSV();
+```
+
+**Pricing Example:**
+```
+100 samples at $50 each:
+- Base cost: $5,000
+- Discount: 20%
+- Savings: $1,000
+- Final: $4,000
+- Per sample: $40
+```
+
+**Features:**
+- Automatic parallelization (up to 200x)
+- Real-time progress updates
+- Per-sample status tracking
+- Aggregate statistics
+- Failed sample handling
+- CSV export
+- Batch management
+
+**Performance:**
+- Process 1000 samples in minutes
+- 100x parallelism for large batches
+- Smart scheduling based on priority
+
+**Events:**
+- `batch.created`: New batch created
+- `batch.started`: Batch processing started
+- `batch.progress`: Progress update
+- `batch.sample.completed`: Individual sample done
+- `batch.sample.failed`: Individual sample failed
+- `batch.completed`: Entire batch done
+
+---
+
 ## v1.1.0 - Multi-Lab Routing (December 2025)
 
 ### 🌍 Major Update: Multi-Lab Routing
