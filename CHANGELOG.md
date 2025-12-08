@@ -1,5 +1,84 @@
 # Changelog
 
+## v1.3.0 - Sample Tracking & Metadata (December 2025)
+
+### 🔬 Major Update: Sample Tracking System
+
+Track samples through their entire lifecycle with rich metadata, quality checks, and audit logs.
+
+**Added:**
+- **SampleTracker**: Complete sample lifecycle management
+- **Barcode System**: Auto-generated unique barcodes
+- **Sample History**: Full audit trail of all events
+- **Quality Checks**: QC metrics and pass/fail tracking
+- **Rich Metadata**: Origin, dates, conditions, protocols, tags
+- **Query System**: Filter by status, type, tags, dates, location
+- **Statistics**: Aggregate stats and QC pass rates
+- **Export**: JSON export of sample data
+
+**New API:**
+```typescript
+// Register sample
+const sample = lab.registerSample(
+  'sample-001',
+  'blood',
+  {
+    origin: 'Patient-A',
+    collectionDate: Date.now(),
+    tags: ['clinical-trial']
+  },
+  barcode
+);
+
+// Update status
+lab.updateSampleStatus('sample-001', 'in-analysis', 'Tech-1');
+
+// Add QC check
+lab.addQualityCheck('sample-001', 'QC-1', true, {
+  purity: 98.5,
+  concentration: 250
+});
+
+// Query samples
+const ready = lab.querySamples({ status: 'ready' });
+const cohortA = lab.querySamples({ tags: ['cohort-a'] });
+```
+
+**Sample Statuses:**
+- `registered` - Newly registered
+- `stored` - In storage
+- `in-preparation` - Being prepared
+- `ready` - Ready for analysis
+- `in-analysis` - Currently analyzing
+- `completed` - Analysis complete
+- `archived` - Archived
+- `disposed` - Disposed
+
+**Features:**
+- Full sample lifecycle tracking
+- Barcode generation and lookup
+- Event history with timestamps
+- QC metrics and pass/fail
+- Custom metadata fields
+- Multi-criteria queries
+- Real-time statistics
+- JSON data export
+
+**Events:**
+- `sample.registered`: New sample registered
+- `sample.status.updated`: Status changed
+- `sample.history.added`: Event added to history
+- `sample.qc.checked`: QC check performed
+
+**Use Cases:**
+- Clinical trials sample management
+- Quality control tracking
+- Regulatory compliance
+- Chain of custody
+- Lab inventory management
+
+---
+
 ## v1.2.0 - Batch Processing (December 2025)
 
 ### 🧪 Major Update: Batch Processing

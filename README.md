@@ -48,6 +48,8 @@ Lab402+ enables researchers to remotely run laboratory analyses (DNA sequencing,
 - **Smart Routing**: Automatic lab selection by cost/speed/quality
 - **Batch Processing**: Process 1000+ samples simultaneously
 - **Volume Discounts**: Up to 30% off for large batches
+- **Sample Tracking**: Full lifecycle management with barcodes
+- **Quality Control**: QC checks and metrics tracking
 - **Auto-Start**: Instruments begin after payment
 - **403 Access Control**: Clearance-based permissions
 
@@ -308,6 +310,266 @@ await clinicalBatch.start();
 const report = clinicalBatch.generateReport();
 // Export for regulatory compliance
 const csv = clinicalBatch.exportToCSV();
+```
+
+---
+
+## 🔬 Sample Tracking & Metadata
+
+Track samples through their entire lifecycle with barcodes, quality checks, and full audit trails.
+
+### Register Samples
+
+```typescript
+const sample = lab.registerSample(
+  'sample-001',
+  'blood',
+  {
+    origin: 'Patient-A',
+    collectionDate: Date.now(),
+    storageConditions: '-80°C',
+    handler: 'Dr. Smith',
+    protocol: 'PROTO-2024-001',
+    tags: ['clinical-trial', 'cohort-a'],
+    customFields: {
+      patientAge: 45,
+      gender: 'F'
+    }
+  },
+  barcode // Optional, auto-generated if not provided
+);
+
+console.log(sample.id);        // 'sample-001'
+console.log(sample.barcode);   // 'LAB-ABC123-XYZ789'
+console.log(sample.status);    // 'registered'
+```
+
+### Barcode System
+
+```typescript
+// Auto-generate barcode
+const barcode = lab.getSampleTracker().generateBarcode('BLOOD');
+// 'BLOOD-1K7X8M9-A3B5C7'
+
+// Find by barcode
+const sample = lab.getSampleByBarcode('BLOOD-1K7X8M9-A3B5C7');
+```
+
+### Status Tracking
+
+```typescript
+// Update sample status
+lab.updateSampleStatus(
+  'sample-001',
+  'stored',
+  'Tech-1',
+  'Stored in freezer A3'
+);
+
+lab.updateSampleStatus(
+  'sample-001',
+  'in-preparation',
+  'Tech-2',
+  'Thawing for analysis'
+);
+
+lab.updateSampleStatus(
+  'sample-001',
+  'ready',
+  'Tech-2'
+);
+
+lab.updateSampleStatus(
+  'sample-001',
+  'in-analysis',
+  'Instrument-1'
+);
+```
+
+### Sample History
+
+```typescript
+// Add custom events
+lab.addSampleHistory(
+  'sample-001',
+  'transferred',
+  'Tech-3',
+  'Transferred to analysis room',
+  'Lab-Room-5'
+);
+
+// View full history
+const tracker = lab.getSampleTracker();
+const history = tracker.getSampleHistory('sample-001');
+
+history.forEach(event => {
+  console.log(`${event.event}: ${event.details}`);
+  console.log(`  Actor: ${event.actor}`);
+  console.log(`  Location: ${event.location}`);
+  console.log(`  Time: ${new Date(event.timestamp).toLocaleString()}`);
+});
+```
+
+### Quality Control
+
+```typescript
+// Add QC check
+lab.addQualityCheck(
+  'sample-001',
+  'QC-Inspector-1',
+  true, // passed
+  {
+    purity: 98.5,
+    concentration: 250,
+    integrity: 9.2
+  },
+  'All metrics within acceptable range'
+);
+
+// Failed QC
+lab.addQualityCheck(
+  'sample-002',
+  'QC-Inspector-1',
+  false, // failed
+  {
+    purity: 75.0
+  },
+  'Purity below threshold'
+);
+
+// View QC history
+const qcChecks = tracker.getQualityChecks('sample-001');
+console.log(`Pass rate: ${qcChecks.filter(q => q.passed).length / qcChecks.length * 100}%`);
+```
+
+### Query Samples
+
+```typescript
+// By status
+const ready = lab.querySamples({ status: 'ready' });
+const inProgress = lab.querySamples({ 
+  status: ['in-preparation', 'in-analysis'] 
+});
+
+// By type
+const bloodSamples = lab.querySamples({ type: 'blood' });
+
+// By tags
+const cohortA = lab.querySamples({ tags: ['cohort-a'] });
+const trials = lab.querySamples({ tags: ['clinical-trial'] });
+
+// By origin
+const patientA = lab.querySamples({ origin: 'Patient-A' });
+
+// By date range
+const recent = lab.querySamples({
+  dateRange: {
+    start: Date.now() - 7 * 24 * 60 * 60 * 1000, // 7 days ago
+    end: Date.now()
+  }
+});
+
+// By location
+const room5 = lab.querySamples({ location: 'Lab-Room-5' });
+
+// Combined filters
+const specificSamples = lab.querySamples({
+  type: 'blood',
+  status: 'ready',
+  tags: ['cohort-a'],
+  origin: 'Patient-A'
+});
+```
+
+### Statistics
+
+```typescript
+const stats = lab.getSampleTracker().getStatistics();
+
+console.log(`Total samples: ${stats.total}`);
+console.log(`By status:`, stats.byStatus);
+// { registered: 5, stored: 10, ready: 8, in-analysis: 3, completed: 15 }
+
+console.log(`By type:`, stats.byType);
+// { blood: 20, tissue: 15, urine: 6 }
+
+console.log(`QC pass rate: ${stats.qcPassRate.toFixed(1)}%`);
+console.log(`Total QC checks: ${stats.totalQCChecks}`);
+console.log(`Total analyses: ${stats.totalAnalyses}`);
+```
+
+### Export Data
+
+```typescript
+// Export single sample
+const data = tracker.exportSampleData('sample-001');
+// Returns JSON string with complete sample data
+
+// Save to file or send to external system
+fs.writeFileSync('sample-001.json', data);
+```
+
+### Real-World Example
+
+```typescript
+// Clinical trial workflow
+const trial = 'TRIAL-2024-001';
+
+// Register patient samples
+for (let i = 0; i < 100; i++) {
+  const sample = lab.registerSample(
+    `sample-${i}`,
+    'blood',
+    {
+      origin: `Patient-${i}`,
+      collectionDate: Date.now(),
+      protocol: trial,
+      tags: ['clinical-trial', 'cohort-a']
+    }
+  );
+
+  // Initial QC
+  lab.addQualityCheck(
+    sample.id,
+    'QC-Team',
+    Math.random() > 0.05, // 95% pass rate
+    {
+      volume: 5.0 + Math.random(),
+      hemolysis: Math.random() * 10
+    }
+  );
+
+  // Store
+  lab.updateSampleStatus(sample.id, 'stored', 'Tech-1');
+}
+
+// Later: Find ready samples for analysis
+const readySamples = lab.querySamples({
+  status: 'ready',
+  tags: ['clinical-trial']
+});
+
+// Process in batch
+const batch = await lab.createBatch({
+  samples: readySamples.map(s => ({
+    id: s.id,
+    data: s.metadata
+  })),
+  instrument: 'dna-sequencer'
+});
+
+await batch.start();
+
+// Update all as completed
+readySamples.forEach(s => {
+  lab.updateSampleStatus(s.id, 'completed', 'System');
+});
+
+// Generate report
+const stats = lab.getSampleTracker().getStatistics();
+console.log(`Trial ${trial} completed:`);
+console.log(`Samples: ${stats.total}`);
+console.log(`QC Pass Rate: ${stats.qcPassRate}%`);
 ```
 
 ---
