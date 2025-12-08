@@ -6,6 +6,7 @@ import { LabRegistry } from './LabRegistry';
 import { Router } from './Router';
 import { BatchManager } from './BatchManager';
 import { BatchAnalysis } from './BatchAnalysis';
+import { SampleTracker } from './SampleTracker';
 import type {
   Lab402Config,
   AnalysisRequest,
@@ -19,7 +20,10 @@ import type {
   LabInfo,
   LabPricing,
   LabSelection,
-  BatchRequest
+  BatchRequest,
+  TrackedSample,
+  SampleMetadata,
+  SampleQuery
 } from './types';
 
 export class Lab402 extends EventEmitter {
@@ -29,6 +33,7 @@ export class Lab402 extends EventEmitter {
   private registry: LabRegistry;
   private router: Router;
   private batchManager: BatchManager;
+  private sampleTracker: SampleTracker;
   private researcherIdentity?: ResearcherIdentity;
   private activeAnalyses: Map<string, Analysis>;
 
@@ -48,6 +53,7 @@ export class Lab402 extends EventEmitter {
     this.registry = new LabRegistry();
     this.router = new Router(this.registry);
     this.batchManager = new BatchManager(this.payment);
+    this.sampleTracker = new SampleTracker();
     this.activeAnalyses = new Map();
 
     this.initialize();
@@ -314,6 +320,70 @@ export class Lab402 extends EventEmitter {
 
   getBatchManager(): BatchManager {
     return this.batchManager;
+  }
+
+  // Sample Tracking Methods
+
+  registerSample(
+    id: string,
+    type: string,
+    metadata?: SampleMetadata,
+    barcode?: string
+  ): TrackedSample {
+    const sample = this.sampleTracker.registerSample(id, type, metadata, barcode);
+
+    // Forward events
+    this.sampleTracker.on('sample.registered', (e) => this.emit('sample.registered', e));
+    this.sampleTracker.on('sample.status.updated', (e) => this.emit('sample.status.updated', e));
+    this.sampleTracker.on('sample.history.added', (e) => this.emit('sample.history.added', e));
+    this.sampleTracker.on('sample.qc.checked', (e) => this.emit('sample.qc.checked', e));
+
+    return sample;
+  }
+
+  getSample(sampleId: string): TrackedSample | undefined {
+    return this.sampleTracker.getSample(sampleId);
+  }
+
+  getSampleByBarcode(barcode: string): TrackedSample | undefined {
+    return this.sampleTracker.getSampleByBarcode(barcode);
+  }
+
+  querySamples(query: SampleQuery): TrackedSample[] {
+    return this.sampleTracker.querySamples(query);
+  }
+
+  updateSampleStatus(
+    sampleId: string,
+    status: any,
+    actor?: string,
+    details?: string
+  ): void {
+    this.sampleTracker.updateStatus(sampleId, status, actor, details);
+  }
+
+  addSampleHistory(
+    sampleId: string,
+    event: any,
+    actor?: string,
+    details?: string,
+    location?: string
+  ): void {
+    this.sampleTracker.addHistory(sampleId, event, actor, details, location);
+  }
+
+  addQualityCheck(
+    sampleId: string,
+    inspector: string,
+    passed: boolean,
+    metrics?: Record<string, number>,
+    notes?: string
+  ): void {
+    this.sampleTracker.addQualityCheck(sampleId, inspector, passed, metrics, notes);
+  }
+
+  getSampleTracker(): SampleTracker {
+    return this.sampleTracker;
   }
 
   async close(): Promise<void> {

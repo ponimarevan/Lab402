@@ -6,6 +6,7 @@ export { LabRegistry } from './LabRegistry';
 export { Router } from './Router';
 export { BatchAnalysis } from './BatchAnalysis';
 export { BatchManager } from './BatchManager';
+export { SampleTracker } from './SampleTracker';
 
 export type {
   Lab402Config,
@@ -36,5 +37,12 @@ export type {
   SampleResult,
   BatchProgress,
   BatchAnalysisConfig,
-  BatchReport
+  BatchReport,
+  SampleMetadata,
+  SampleHistory,
+  SampleEventType,
+  TrackedSample,
+  SampleStatus,
+  QualityCheck,
+  SampleQuery
 } from './types';
