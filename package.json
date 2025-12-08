@@ -1,6 +1,6 @@
 {
   "name": "@lab402/sdk",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Autonomous Laboratory & Compute Protocol - Remote lab analysis with unified 402 payments",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
