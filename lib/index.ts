@@ -8,6 +8,7 @@ export { BatchAnalysis } from './BatchAnalysis';
 export { BatchManager } from './BatchManager';
 export { SampleTracker } from './SampleTracker';
 export { AIModelSelector } from './AIModelSelector';
+export { CostOptimizer } from './CostOptimizer';
 
 export type {
   Lab402Config,
@@ -51,3 +52,15 @@ export type {
   AIModelSelection,
   ModelComparison
 } from './types';
+
+export type {
+  OptimizationPriority,
+  OptimizationConstraints,
+  OptimizationResult,
+  OptimizationAlternative,
+  WhatIfScenario,
+  CostBreakdown,
+  SavingsEstimate,
+  PriceComparison,
+  OptimizationRequest
+} from './cost-optimizer-types';

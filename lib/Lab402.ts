@@ -8,6 +8,7 @@ import { BatchManager } from './BatchManager';
 import { BatchAnalysis } from './BatchAnalysis';
 import { SampleTracker } from './SampleTracker';
 import { AIModelSelector } from './AIModelSelector';
+import { CostOptimizer } from './CostOptimizer';
 import type {
   Lab402Config,
   AnalysisRequest,
@@ -28,6 +29,13 @@ import type {
   AIModelSelection,
   AIModel
 } from './types';
+import type {
+  OptimizationRequest,
+  OptimizationResult,
+  WhatIfScenario,
+  SavingsEstimate,
+  PriceComparison
+} from './cost-optimizer-types';
 
 export class Lab402 extends EventEmitter {
   private config: Required<Lab402Config>;
@@ -38,6 +46,7 @@ export class Lab402 extends EventEmitter {
   private batchManager: BatchManager;
   private sampleTracker: SampleTracker;
   private aiModelSelector: AIModelSelector;
+  private costOptimizer?: CostOptimizer;
   private researcherIdentity?: ResearcherIdentity;
   private activeAnalyses: Map<string, Analysis>;
 
@@ -424,6 +433,145 @@ export class Lab402 extends EventEmitter {
 
   getAIModelSelector(): AIModelSelector {
     return this.aiModelSelector;
+  }
+
+  // Cost Optimizer Methods
+
+  /**
+   * Initialize cost optimizer with lab registry, AI models, and compute tiers
+   */
+  private initializeCostOptimizer(): void {
+    if (this.costOptimizer) return;
+
+    const labs = this.registry.getAllLabs();
+    const aiModels = this.aiModelSelector.getAllModels();
+    const computeTiers = [
+      { name: 'standard', gpu: 1, vram: 16, costPerMs: 0.004 },
+      { name: 'performance', gpu: 4, vram: 32, costPerMs: 0.012 },
+      { name: 'extreme', gpu: 8, vram: 64, costPerMs: 0.032 }
+    ];
+
+    this.costOptimizer = new CostOptimizer(labs, aiModels, computeTiers);
+  }
+
+  /**
+   * Optimize analysis cost - automatically finds the best lab + AI model + compute tier
+   * 
+   * @example
+   * ```ts
+   * const optimized = lab.optimizeCost({
+   *   instrument: 'dna-sequencer',
+   *   samples: 100,
+   *   constraints: {
+   *     maxCost: 3000,
+   *     minQuality: 4.0,
+   *     priority: 'cost'
+   *   }
+   * });
+   * 
+   * console.log('Best lab:', optimized.lab.name);
+   * console.log('Total cost:', optimized.totals.discountedCost);
+   * console.log('Savings:', optimized.totals.totalSavings);
+   * ```
+   */
+  optimizeCost(request: Omit<OptimizationRequest, 'includeAlternatives' | 'includeWhatIf'>): OptimizationResult {
+    if (!this.costOptimizer) {
+      this.initializeCostOptimizer();
+    }
+
+    const result = this.costOptimizer!.optimize({
+      ...request,
+      includeAlternatives: true,
+      includeWhatIf: false
+    });
+
+    this.emitEvent('cost.optimized', {
+      instrument: request.instrument,
+      samples: request.samples,
+      result
+    });
+
+    return result;
+  }
+
+  /**
+   * Run what-if scenarios to compare different configurations
+   * 
+   * @example
+   * ```ts
+   * const scenarios = lab.runWhatIf({
+   *   instrument: 'dna-sequencer',
+   *   samples: 100,
+   *   constraints: { priority: 'cost' }
+   * }, [
+   *   { name: 'Double samples', changes: { samples: 200 } },
+   *   { name: 'High quality', changes: { priority: 'quality' } }
+   * ]);
+   * ```
+   */
+  runWhatIf(
+    baseRequest: OptimizationRequest,
+    scenarios: Array<{ name: string; changes: any }>
+  ): WhatIfScenario[] {
+    if (!this.costOptimizer) {
+      this.initializeCostOptimizer();
+    }
+
+    return this.costOptimizer!.runWhatIf(baseRequest, scenarios);
+  }
+
+  /**
+   * Estimate potential savings compared to worst-case scenario
+   * 
+   * @example
+   * ```ts
+   * const savings = lab.estimateSavings({
+   *   instrument: 'dna-sequencer',
+   *   samples: 100,
+   *   constraints: { priority: 'cost' }
+   * });
+   * 
+   * console.log('You save:', savings.savings.absolute);
+   * console.log('Percentage:', savings.savings.percentage);
+   * ```
+   */
+  estimateSavings(request: OptimizationRequest): SavingsEstimate {
+    if (!this.costOptimizer) {
+      this.initializeCostOptimizer();
+    }
+
+    return this.costOptimizer!.estimateSavings(request);
+  }
+
+  /**
+   * Compare prices across all available labs, AI models, and compute tiers
+   * 
+   * @example
+   * ```ts
+   * const comparison = lab.comparePrices({
+   *   instrument: 'dna-sequencer',
+   *   samples: 100,
+   *   constraints: { priority: 'balanced' }
+   * });
+   * ```
+   */
+  comparePrices(request: OptimizationRequest): PriceComparison[] {
+    if (!this.costOptimizer) {
+      this.initializeCostOptimizer();
+    }
+
+    return this.costOptimizer!.comparePrices(request);
+  }
+
+  /**
+   * Get cost optimizer instance (for advanced usage)
+   */
+  getCostOptimizer(): CostOptimizer {
+    if (!this.costOptimizer) {
+      this.initializeCostOptimizer();
+    }
+
+    return this.costOptimizer!;
   }
 
   async close(): Promise<void> {
