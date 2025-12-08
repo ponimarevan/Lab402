@@ -50,6 +50,7 @@ Lab402+ enables researchers to remotely run laboratory analyses (DNA sequencing,
 - **Volume Discounts**: Up to 30% off for large batches
 - **Sample Tracking**: Full lifecycle management with barcodes
 - **Quality Control**: QC checks and metrics tracking
+- **7 AI Models**: Choose from specialized models for optimal results
 - **Auto-Start**: Instruments begin after payment
 - **403 Access Control**: Clearance-based permissions
 
@@ -311,6 +312,256 @@ const report = clinicalBatch.generateReport();
 // Export for regulatory compliance
 const csv = clinicalBatch.exportToCSV();
 ```
+
+---
+
+## 🤖 AI Model Selection
+
+Choose from 7 specialized AI models to optimize your analysis for cost, accuracy, or speed.
+
+### Available Models
+
+| Model | Type | Price/Sample | Accuracy | Best For |
+|-------|------|--------------|----------|----------|
+| Bio-GPT 7B | General Bio | $0.50 | 94.5% | Routine analysis |
+| Chem-BERT Base | Chemistry | $0.75 | 96.2% | Chemical analysis |
+| Medical-Vision v4 | Imaging | $1.50 | 97.2% | Medical imaging |
+| Protein-Fold v3 | Structural | $2.00 | 98.1% | Protein structures |
+| Pathology-AI Pro | Pathology | $2.50 | 96.8% | Digital pathology |
+| Genomics-LLM 70B | Genomics | $3.50 | 97.8% | Complex genomics |
+| Drug-Discovery AI | Pharma | $5.00 | 95.5% | Drug development |
+
+### Auto-Select Best Model
+
+```typescript
+// Let Lab402 choose the best model
+const selection = lab.selectAIModel('dna-sequencer');
+
+console.log(selection.model.name);       // "Bio-GPT 7B"
+console.log(selection.reason);           // "Optimal balance of cost and performance"
+console.log(selection.confidence);       // 94%
+console.log(selection.model.pricing.perSample); // 0.50
+```
+
+### Select by Priority
+
+```typescript
+// Cost-optimized (cheapest)
+const costOptimized = lab.selectAIModel(
+  'dna-sequencer',
+  undefined,
+  'cost'
+);
+console.log(costOptimized.model.pricing.perSample); // $0.50
+
+// Accuracy-optimized (most accurate)
+const accuracyOptimized = lab.selectAIModel(
+  'dna-sequencer',
+  undefined,
+  'accuracy'
+);
+console.log(accuracyOptimized.model.parameters.accuracy); // 97.8%
+```
+
+### Compare Models
+
+```typescript
+const comparison = lab.compareAIModels([
+  'bio-gpt-7b',
+  'genomics-llm-70b'
+]);
+
+console.log('Recommended:', comparison.recommended.name);
+// "Bio-GPT 7B"
+
+comparison.alternatives.forEach(alt => {
+  console.log(`\n${alt.model.name}:`);
+  console.log('Pros:', alt.pros);
+  // ["3.3% more accurate", "32K context window"]
+  console.log('Cons:', alt.cons);
+  // ["$3.00 more expensive per sample"]
+});
+```
+
+### Search & Filter
+
+```typescript
+// Find affordable models
+const affordable = lab.searchAIModels({
+  maxPrice: 1.00
+});
+
+// Find high-accuracy models
+const accurate = lab.searchAIModels({
+  minAccuracy: 96
+});
+
+// Find models with specific capabilities
+const proteinModels = lab.searchAIModels({
+  capabilities: ['protein structure']
+});
+
+// Combined filters
+const ideal = lab.searchAIModels({
+  maxPrice: 2.00,
+  minAccuracy: 95,
+  type: 'bio-gpt'
+});
+```
+
+### Use in Analysis
+
+```typescript
+// Step 1: Select model
+const selection = lab.selectAIModel(
+  'dna-sequencer',
+  'genomic-variant-analysis',
+  'accuracy'
+);
+
+// Step 2: Create analysis with selected model
+const analysis = await lab.requestAnalysis({
+  instrument: 'dna-sequencer',
+  sample: {
+    id: 'sample-001',
+    type: 'genomic-dna',
+    data: { sequenceLength: 3000000 }
+  },
+  compute: {
+    gpu: selection.model.requirements.minGPU,
+    vram: selection.model.requirements.minVRAM
+  },
+  ai: {
+    model: selection.model.id,
+    interpretation: true,
+    reportFormat: 'detailed'
+  }
+});
+
+console.log(`Using: ${selection.model.name}`);
+console.log(`Cost: $${analysis.invoice.amount.usd.toFixed(2)}`);
+```
+
+### Model Details
+
+```typescript
+const model = lab.getAIModel('bio-gpt-7b');
+
+console.log(model.name);          // "Bio-GPT 7B"
+console.log(model.description);   // "General-purpose biological..."
+console.log(model.version);       // "2.0"
+console.log(model.trainingData);  // "PubMed, GenBank, UniProt (2025)"
+
+// Capabilities
+model.capabilities.forEach(cap => {
+  console.log(`  - ${cap}`);
+});
+// - DNA sequence analysis
+// - Protein annotation
+// - Gene expression interpretation
+// ...
+
+// Requirements
+console.log(`GPU: ${model.requirements.minGPU}x`);      // 1x
+console.log(`VRAM: ${model.requirements.minVRAM}GB`);   // 16GB
+console.log(`RAM: ${model.requirements.minRAM}GB`);     // 32GB
+
+// Parameters
+console.log(`Size: ${model.parameters.size}`);                    // "7B"
+console.log(`Context: ${model.parameters.contextWindow} tokens`); // 8192
+console.log(`Accuracy: ${model.parameters.accuracy}%`);           // 94.5%
+```
+
+### Budget Optimization
+
+```typescript
+const budget = 100;        // $100 total budget
+const samplesNeeded = 50;  // 50 samples to analyze
+const maxPerSample = budget / samplesNeeded; // $2.00/sample
+
+// Find models within budget
+const budgetModels = lab.searchAIModels({
+  maxPrice: maxPerSample
+});
+
+console.log(`Models within budget: ${budgetModels.length}`);
+
+budgetModels.forEach(m => {
+  const totalCost = m.pricing.perSample * samplesNeeded;
+  console.log(`\n${m.name}:`);
+  console.log(`  Per sample: $${m.pricing.perSample}`);
+  console.log(`  Total: $${totalCost.toFixed(2)}`);
+  console.log(`  Accuracy: ${m.parameters.accuracy}%`);
+});
+
+// Output:
+// Bio-GPT 7B:
+//   Per sample: $0.50
+//   Total: $25.00
+//   Accuracy: 94.5%
+//
+// Chem-BERT Base:
+//   Per sample: $0.75
+//   Total: $37.50
+//   Accuracy: 96.2%
+//
+// Medical-Vision v4:
+//   Per sample: $1.50
+//   Total: $75.00
+//   Accuracy: 97.2%
+```
+
+### Cost Analysis
+
+```typescript
+// Calculate costs for different volumes
+const models = ['bio-gpt-7b', 'genomics-llm-70b', 'drug-discovery-ai'];
+
+console.log('Cost Comparison:\n');
+
+models.forEach(modelId => {
+  const model = lab.getAIModel(modelId);
+  
+  console.log(`${model.name}:`);
+  console.log(`  10 samples: $${(model.pricing.perSample * 10).toFixed(2)}`);
+  console.log(`  100 samples: $${(model.pricing.perSample * 100).toFixed(2)}`);
+  console.log(`  1000 samples: $${(model.pricing.perSample * 1000).toFixed(2)}`);
+  console.log('');
+});
+
+// Output:
+// Bio-GPT 7B:
+//   10 samples: $5.00
+//   100 samples: $50.00
+//   1000 samples: $500.00
+//
+// Genomics-LLM 70B:
+//   10 samples: $35.00
+//   100 samples: $350.00
+//   1000 samples: $3,500.00
+```
+
+### Use Cases
+
+**Research Labs:**
+- Bio-GPT 7B for routine analysis ($0.50/sample)
+- Genomics-LLM for complex projects ($3.50/sample)
+- Save 30-50% with strategic model selection
+
+**Clinical Diagnostics:**
+- Medical-Vision for imaging ($1.50/sample)
+- Pathology-AI for tissue analysis ($2.50/sample)
+- Prioritize accuracy over cost
+
+**Pharmaceutical:**
+- Drug-Discovery AI for R&D ($5.00/sample)
+- Chem-BERT for compound screening ($0.75/sample)
+- ROI-focused model selection
+
+**High-Throughput:**
+- Bio-GPT for initial screening ($0.50/sample)
+- Protein-Fold for hits ($2.00/sample)
+- Balance speed, cost, and accuracy
 
 ---
 

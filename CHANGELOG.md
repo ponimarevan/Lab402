@@ -1,5 +1,129 @@
 # Changelog
 
+## v1.4.0 - AI Model Selection (December 2025)
+
+### 🤖 Major Update: AI Model Marketplace
+
+Choose from 7 specialized AI models for optimal analysis quality and cost.
+
+**Added:**
+- **AIModelSelector**: Intelligent AI model selection system
+- **7 AI Models**: Bio-GPT, Chem-BERT, Protein-Fold, Genomics-LLM, Drug-Discovery, Medical-Vision, Pathology-AI
+- **Auto-Selection**: Automatic model recommendation by instrument and priority
+- **Model Comparison**: Compare models by cost, accuracy, and capabilities
+- **Search & Filter**: Find models by price, accuracy, and features
+- **Cost Optimization**: Select by 'cost', 'accuracy', or 'speed' priority
+
+**AI Models Available:**
+
+1. **Bio-GPT 7B** ($0.50/sample, 94.5% accuracy)
+   - General biological analysis
+   - DNA sequences, proteins, gene expression
+   - 7B parameters, 8K context
+
+2. **Chem-BERT Base** ($0.75/sample, 96.2% accuracy)
+   - Chemistry & pharmacology
+   - Molecular structures, reactions, toxicity
+   - 12B parameters
+
+3. **Protein-Fold v3** ($2.00/sample, 98.1% accuracy)
+   - Protein structure prediction
+   - 3D structures, binding sites, mutations
+   - 50B parameters, AlphaFold-derived
+
+4. **Genomics-LLM 70B** ($3.50/sample, 97.8% accuracy)
+   - Advanced genomic analysis
+   - Variant calling, GWAS, epigenetics
+   - 70B parameters, 32K context
+
+5. **Drug-Discovery AI** ($5.00/sample, 95.5% accuracy)
+   - Pharmaceutical research
+   - Lead compounds, ADMET, clinical trials
+   - 100B parameters
+
+6. **Medical-Vision v4** ($1.50/sample, 97.2% accuracy)
+   - Medical imaging analysis
+   - Disease detection, tumor segmentation
+   - 25B parameters, multi-modal
+
+7. **Pathology-AI Pro** ($2.50/sample, 96.8% accuracy)
+   - Digital pathology
+   - Cell classification, tissue analysis
+   - 35B parameters
+
+**New API:**
+```typescript
+// Auto-select best model
+const selection = lab.selectAIModel('dna-sequencer');
+console.log(selection.model.name); // "Bio-GPT 7B"
+
+// Select by priority
+const costEffective = lab.selectAIModel('dna-sequencer', undefined, 'cost');
+const mostAccurate = lab.selectAIModel('dna-sequencer', undefined, 'accuracy');
+
+// Compare models
+const comparison = lab.compareAIModels([
+  'bio-gpt-7b',
+  'genomics-llm-70b'
+]);
+
+// Search by criteria
+const affordable = lab.searchAIModels({
+  maxPrice: 1.00,
+  minAccuracy: 95
+});
+
+// Use in analysis
+const analysis = await lab.requestAnalysis({
+  instrument: 'dna-sequencer',
+  ai: {
+    model: selection.model.id,
+    interpretation: true
+  }
+});
+```
+
+**Model Selection:**
+```typescript
+const selection = lab.selectAIModel('microscopy', 'cell-analysis', 'accuracy');
+// {
+//   model: MedicalVision,
+//   reason: "Highest accuracy (97.2%). Specialized for microscopy analysis.",
+//   confidence: 94,
+//   alternatives: [PathologyAI, ...]
+// }
+```
+
+**Comparison:**
+```typescript
+const comparison = lab.compareAIModels(['bio-gpt-7b', 'genomics-llm-70b']);
+// {
+//   recommended: BioGPT,
+//   alternatives: [{
+//     model: GenomicsLLM,
+//     pros: ["3.3% more accurate"],
+//     cons: ["$3.00 more expensive per sample"],
+//     costDiff: 3.00
+//   }]
+// }
+```
+
+**Use Cases:**
+- Budget-constrained research: Select cost-optimized models
+- Clinical diagnostics: Prioritize accuracy over cost
+- High-throughput screening: Balance speed and accuracy
+- Specialized analysis: Use domain-specific models
+
+**Cost Savings:**
+- Bio-GPT for routine analysis: $0.50/sample
+- Genomics-LLM for complex cases: $3.50/sample
+- Strategic selection: Save 30-50% on AI costs
+
+**Fixes:**
+- Fixed logo file permissions (read-only issue resolved)
+
+---
+
 ## v1.3.0 - Sample Tracking & Metadata (December 2025)
 
 ### 🔬 Major Update: Sample Tracking System
