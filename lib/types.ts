@@ -131,6 +131,10 @@ export type EventType =
   | 'batch.sample.failed'
   | 'batch.completed'
   | 'batch.failed'
+  | 'sample.registered'
+  | 'sample.status.updated'
+  | 'sample.history.added'
+  | 'sample.qc.checked'
   | 'error';
 
 export interface Lab402Event {
@@ -267,4 +271,83 @@ export interface BatchReport {
   results: SampleResult[];
   aggregateStatistics?: Record<string, any>;
   generatedAt: number;
+}
+
+// Sample Tracking Types
+
+export interface SampleMetadata {
+  origin?: string;
+  collectionDate?: number;
+  expirationDate?: number;
+  storageConditions?: string;
+  handler?: string;
+  protocol?: string;
+  tags?: string[];
+  customFields?: Record<string, any>;
+}
+
+export interface SampleHistory {
+  timestamp: number;
+  event: SampleEventType;
+  actor?: string;
+  details?: string;
+  location?: string;
+}
+
+export type SampleEventType =
+  | 'created'
+  | 'registered'
+  | 'stored'
+  | 'retrieved'
+  | 'prepared'
+  | 'analyzed'
+  | 'completed'
+  | 'archived'
+  | 'disposed'
+  | 'transferred';
+
+export interface TrackedSample {
+  id: string;
+  barcode?: string;
+  type: string;
+  metadata: SampleMetadata;
+  status: SampleStatus;
+  location?: string;
+  history: SampleHistory[];
+  analyses: string[]; // Analysis IDs
+  qcChecks: QualityCheck[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type SampleStatus =
+  | 'registered'
+  | 'stored'
+  | 'in-preparation'
+  | 'ready'
+  | 'in-analysis'
+  | 'completed'
+  | 'archived'
+  | 'disposed';
+
+export interface QualityCheck {
+  timestamp: number;
+  inspector: string;
+  passed: boolean;
+  metrics?: Record<string, number>;
+  notes?: string;
+}
+
+export interface SampleQuery {
+  ids?: string[];
+  barcodes?: string[];
+  type?: string;
+  status?: SampleStatus | SampleStatus[];
+  tags?: string[];
+  origin?: string;
+  dateRange?: {
+    start: number;
+    end: number;
+  };
+  location?: string;
 }
