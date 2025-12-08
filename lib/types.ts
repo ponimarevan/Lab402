@@ -351,3 +351,57 @@ export interface SampleQuery {
   };
   location?: string;
 }
+
+// AI Model Selection Types
+
+export type AIModelType =
+  | 'bio-gpt'
+  | 'chem-bert'
+  | 'protein-fold'
+  | 'genomics-llm'
+  | 'drug-discovery'
+  | 'medical-vision'
+  | 'pathology-ai';
+
+export interface AIModel {
+  id: string;
+  name: string;
+  type: AIModelType;
+  version: string;
+  description: string;
+  capabilities: string[];
+  pricing: {
+    perSample: number;
+    perToken?: number;
+    perImage?: number;
+  };
+  parameters?: {
+    size: string; // e.g., "7B", "70B", "405B"
+    contextWindow?: number;
+    accuracy?: number;
+  };
+  requirements: {
+    minGPU?: number;
+    minVRAM?: number;
+    minRAM?: number;
+  };
+  specialization?: string[];
+  trainingData?: string;
+}
+
+export interface AIModelSelection {
+  model: AIModel;
+  reason: string;
+  confidence: number;
+  alternatives?: AIModel[];
+}
+
+export interface ModelComparison {
+  recommended: AIModel;
+  alternatives: Array<{
+    model: AIModel;
+    pros: string[];
+    cons: string[];
+    costDiff: number;
+  }>;
+}
