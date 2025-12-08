@@ -7,6 +7,7 @@ import { Router } from './Router';
 import { BatchManager } from './BatchManager';
 import { BatchAnalysis } from './BatchAnalysis';
 import { SampleTracker } from './SampleTracker';
+import { AIModelSelector } from './AIModelSelector';
 import type {
   Lab402Config,
   AnalysisRequest,
@@ -23,7 +24,9 @@ import type {
   BatchRequest,
   TrackedSample,
   SampleMetadata,
-  SampleQuery
+  SampleQuery,
+  AIModelSelection,
+  AIModel
 } from './types';
 
 export class Lab402 extends EventEmitter {
@@ -34,6 +37,7 @@ export class Lab402 extends EventEmitter {
   private router: Router;
   private batchManager: BatchManager;
   private sampleTracker: SampleTracker;
+  private aiModelSelector: AIModelSelector;
   private researcherIdentity?: ResearcherIdentity;
   private activeAnalyses: Map<string, Analysis>;
 
@@ -54,6 +58,7 @@ export class Lab402 extends EventEmitter {
     this.router = new Router(this.registry);
     this.batchManager = new BatchManager(this.payment);
     this.sampleTracker = new SampleTracker();
+    this.aiModelSelector = new AIModelSelector();
     this.activeAnalyses = new Map();
 
     this.initialize();
@@ -384,6 +389,41 @@ export class Lab402 extends EventEmitter {
 
   getSampleTracker(): SampleTracker {
     return this.sampleTracker;
+  }
+
+  // AI Model Selection Methods
+
+  selectAIModel(
+    instrumentType: InstrumentType,
+    analysisType?: string,
+    priority?: 'cost' | 'accuracy' | 'speed'
+  ): AIModelSelection {
+    return this.aiModelSelector.selectModel(instrumentType, analysisType, priority);
+  }
+
+  getAIModel(modelId: string): AIModel | undefined {
+    return this.aiModelSelector.getModel(modelId);
+  }
+
+  getAllAIModels(): AIModel[] {
+    return this.aiModelSelector.getAllModels();
+  }
+
+  compareAIModels(modelIds: string[]) {
+    return this.aiModelSelector.compareModels(modelIds);
+  }
+
+  searchAIModels(query: {
+    type?: any;
+    maxPrice?: number;
+    minAccuracy?: number;
+    capabilities?: string[];
+  }): AIModel[] {
+    return this.aiModelSelector.searchModels(query);
+  }
+
+  getAIModelSelector(): AIModelSelector {
+    return this.aiModelSelector;
   }
 
   async close(): Promise<void> {

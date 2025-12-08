@@ -7,6 +7,7 @@ export { Router } from './Router';
 export { BatchAnalysis } from './BatchAnalysis';
 export { BatchManager } from './BatchManager';
 export { SampleTracker } from './SampleTracker';
+export { AIModelSelector } from './AIModelSelector';
 
 export type {
   Lab402Config,
@@ -44,5 +45,9 @@ export type {
   TrackedSample,
   SampleStatus,
   QualityCheck,
-  SampleQuery
+  SampleQuery,
+  AIModelType,
+  AIModel,
+  AIModelSelection,
+  ModelComparison
 } from './types';
