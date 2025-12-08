@@ -565,6 +565,207 @@ models.forEach(modelId => {
 
 ---
 
+## 💰 Cost Optimizer
+
+Lab402+'s multi-objective optimization engine automatically finds the most cost-effective configuration for your analysis.
+
+### Quick Example
+
+```javascript
+// Find optimal configuration
+const optimized = lab.optimizeCost({
+  instrument: 'dna-sequencer',
+  samples: 100,
+  constraints: {
+    maxCost: 3000,        // Budget limit
+    minQuality: 4.0,      // Minimum quality (1-5)
+    priority: 'cost'      // or 'speed', 'quality', 'balanced'
+  }
+});
+
+console.log('Selected Lab:', optimized.lab.name);
+console.log('Selected AI:', optimized.aiModel.name);
+console.log('Total Cost:', optimized.totals.discountedCost);
+console.log('Savings:', optimized.totals.totalSavings);
+```
+
+### Optimization Priorities
+
+| Priority | Optimizes | Best For |
+|----------|-----------|----------|
+| **cost** | Lowest price | Budget-constrained projects |
+| **speed** | Fastest turnaround | Urgent analyses |
+| **quality** | Highest quality | Critical research |
+| **balanced** | Optimal mix | General-purpose |
+
+### What-If Scenarios
+
+Compare different configurations side-by-side:
+
+```javascript
+const scenarios = lab.runWhatIf(baseRequest, [
+  { name: 'Double samples', changes: { samples: 200 } },
+  { name: 'High quality', changes: { priority: 'quality' } },
+  { name: 'Rush job', changes: { priority: 'speed' } }
+]);
+
+scenarios.forEach(s => {
+  console.log(`${s.name}: $${s.result.totals.discountedCost}`);
+});
+
+// Output:
+// Double samples: $6,144
+// High quality: $6,400
+// Rush job: $5,280
+```
+
+### Savings Estimation
+
+See how much you save vs worst-case scenario:
+
+```javascript
+const savings = lab.estimateSavings({
+  instrument: 'dna-sequencer',
+  samples: 100,
+  constraints: { priority: 'cost' }
+});
+
+console.log('Worst case:', savings.worstCase.total);    // $8,000
+console.log('Optimized:', savings.optimized.total);     // $3,072
+console.log('You save:', savings.savings.absolute);     // $4,928
+console.log('Percentage:', savings.savings.percentage); // 61.6%
+```
+
+### Price Comparison
+
+Compare prices across all options:
+
+```javascript
+const comparison = lab.comparePrices({
+  instrument: 'dna-sequencer',
+  samples: 100,
+  constraints: { priority: 'balanced' }
+});
+
+// Laboratory:
+//   [ ] Tokyo Biotech - $40 (quality: 4.0)
+//   [✓] Stanford BioLab - $48 (quality: 4.5)
+//   [ ] MIT BioLab - $55 (quality: 5.0)
+//
+// AI Model:
+//   [✓] Bio-GPT 7B - $50 (accuracy: 94.5%)
+//   [ ] Genomics-LLM 70B - $350 (accuracy: 97.8%)
+//
+// Compute Tier:
+//   [ ] standard - $48 (1 GPU)
+//   [✓] performance - $144 (4 GPU)
+//   [ ] extreme - $384 (8 GPU)
+```
+
+### Real-World Example
+
+```javascript
+// Clinical trial: 500 patient samples
+// Budget: $20,000
+// Need high quality + CLIA/CAP certification
+// Deadline: 48 hours
+
+const optimized = lab.optimizeCost({
+  instrument: 'dna-sequencer',
+  samples: 500,
+  constraints: {
+    maxCost: 20000,
+    minQuality: 4.5,
+    maxTime: '48h',
+    priority: 'quality',
+    requireCertifications: ['CLIA', 'CAP']
+  }
+});
+
+console.log('Lab:', optimized.lab.name);              // Singapore BioLab
+console.log('Quality:', optimized.totals.averageQuality); // 4.7/5
+console.log('Cost:', optimized.totals.discountedCost);    // $18,750
+console.log('Batch discount:', optimized.batch.discount); // 25%
+console.log('Under budget:', 20000 - 18750);              // $1,250
+console.log('ETA:', optimized.lab.eta);                   // 36h
+```
+
+### Cost Breakdown
+
+Every optimization includes detailed breakdown:
+
+```javascript
+{
+  lab: { id, name, cost, quality, eta, location },
+  aiModel: { id, name, costPerSample, accuracy },
+  compute: { tier, gpu, vram, costPerMs },
+  batch: { samples, discount, savings },
+  totals: {
+    baseCost: 6400,           // Before discounts
+    discountedCost: 5120,     // After 20% discount
+    totalSavings: 1280,       // Amount saved
+    estimatedTime: 7200000,   // 2 hours in ms
+    averageQuality: 4.3       // Combined quality
+  },
+  alternatives: [...]         // Other good options
+}
+```
+
+### Features
+
+- **Multi-Objective Optimization** - Balance cost, speed, and quality
+- **Automatic Lab Selection** - Best lab from global network
+- **AI Model Optimization** - Optimal model for your use case
+- **Batch Discounts** - 10-30% off for volume
+- **What-If Scenarios** - Test different configurations
+- **Savings Estimation** - See potential savings
+- **Price Comparison** - Compare all options
+- **Budget Constraints** - Enforce cost limits
+- **Quality Requirements** - Minimum quality thresholds
+- **Time Constraints** - Deadline enforcement
+- **Location Preferences** - Prefer specific regions
+- **Certification Requirements** - CLIA, CAP, ISO-9001, etc.
+
+### Use Cases
+
+- **Clinical Trials** - Optimize 500+ samples within budget
+- **Research Labs** - Cost-effective routine analyses
+- **Emergency** - Fast turnaround with acceptable quality
+- **Budget Research** - Maximize samples within tight budgets
+- **High-Throughput** - Large-scale screening campaigns
+
+### Advanced Constraints
+
+```javascript
+const optimized = lab.optimizeCost({
+  instrument: 'dna-sequencer',
+  samples: 100,
+  constraints: {
+    maxCost: 5000,                          // Budget limit
+    minQuality: 4.5,                        // Quality floor
+    maxTime: '24h',                         // Deadline
+    priority: 'balanced',                   // Strategy
+    preferredLocations: ['US', 'EU'],       // Regions
+    requireCertifications: ['CLIA', 'CAP']  // Certs
+  }
+});
+```
+
+### Savings by Batch Size
+
+| Samples | Discount | Example (@ $50/sample) |
+|---------|----------|------------------------|
+| 1-9     | 0%       | $500 → $500 |
+| 10-49   | 10%      | $2,500 → $2,250 |
+| 50-99   | 15%      | $5,000 → $4,250 |
+| 100-499 | 20%      | $10,000 → $8,000 |
+| 500-999 | 25%      | $50,000 → $37,500 |
+| 1000+   | 30%      | $100,000 → $70,000 |
+
+💡 **Tip**: Always batch samples together to get volume discounts!
+
+---
+
 ## 🔬 Sample Tracking & Metadata
 
 Track samples through their entire lifecycle with barcodes, quality checks, and full audit trails.
