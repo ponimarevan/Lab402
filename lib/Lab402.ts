@@ -9,6 +9,8 @@ import { BatchAnalysis } from './BatchAnalysis';
 import { SampleTracker } from './SampleTracker';
 import { AIModelSelector } from './AIModelSelector';
 import { CostOptimizer } from './CostOptimizer';
+import { Pipeline } from './Pipeline';
+import { PipelineTemplates } from './PipelineTemplates';
 import type {
   Lab402Config,
   AnalysisRequest,
@@ -572,6 +574,76 @@ export class Lab402 extends EventEmitter {
     }
 
     return this.costOptimizer!;
+  }
+
+  /**
+   * Create a new data pipeline for laboratory automation
+   * 
+   * @example
+   * ```ts
+   * const pipeline = lab.createPipeline('genomics-workflow')
+   *   .addInstrument('dna-sequencer', { samples: 100 })
+   *   .addAIAnalysis('genomics-llm', 'variant-calling')
+   *   .addStorage('s3://results/genomics')
+   *   .execute();
+   * ```
+   */
+  createPipeline(name: string, description?: string): Pipeline {
+    const pipeline = new Pipeline(name, description);
+    
+    // Forward pipeline events to Lab402 events
+    pipeline.on('event', (event) => {
+      this.emitEvent('pipeline.event' as EventType, event);
+    });
+
+    return pipeline;
+  }
+
+  /**
+   * Create pipeline from built-in template
+   * 
+   * Available templates:
+   * - 'genomics-analysis': DNA sequencing → AI analysis → Storage
+   * - 'drug-discovery': Mass-spec → AI prediction → Results
+   * - 'quality-control': Multiple tests → QC validation → Approve/Reject
+   * - 'batch-processing': High-volume sample processing
+   * - 'research-workflow': Multi-step scientific protocol
+   * 
+   * @example
+   * ```ts
+   * const pipeline = lab.createPipelineFromTemplate('genomics-analysis', {
+   *   samples: 100,
+   *   storageDestination: 's3://my-results'
+   * });
+   * await pipeline.execute();
+   * ```
+   */
+  createPipelineFromTemplate(
+    templateName: string,
+    variables?: Record<string, any>
+  ): Pipeline {
+    const pipeline = PipelineTemplates.create(templateName, variables);
+    
+    // Forward pipeline events
+    pipeline.on('event', (event) => {
+      this.emitEvent('pipeline.event' as EventType, event);
+    });
+
+    return pipeline;
+  }
+
+  /**
+   * List available pipeline templates
+   */
+  listPipelineTemplates(): string[] {
+    return PipelineTemplates.list();
+  }
+
+  /**
+   * Get pipeline template information
+   */
+  getPipelineTemplateInfo(name: string): any {
+    return PipelineTemplates.info(name);
   }
 
   async close(): Promise<void> {

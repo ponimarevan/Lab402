@@ -9,6 +9,8 @@ export { BatchManager } from './BatchManager';
 export { SampleTracker } from './SampleTracker';
 export { AIModelSelector } from './AIModelSelector';
 export { CostOptimizer } from './CostOptimizer';
+export { Pipeline } from './Pipeline';
+export { PipelineTemplates } from './PipelineTemplates';
 
 export type {
   Lab402Config,
@@ -64,3 +66,27 @@ export type {
   PriceComparison,
   OptimizationRequest
 } from './cost-optimizer-types';
+
+export type {
+  PipelineStepType,
+  PipelineStatus,
+  PipelineStep,
+  PipelineStepConfig,
+  RetryPolicy,
+  PipelineContext,
+  Pipeline as PipelineType,
+  PipelineError,
+  PipelineResult,
+  PipelineTemplate,
+  PipelineEvent,
+  PipelineExecutionOptions,
+  StepExecutionResult,
+  PipelineMetrics,
+  ConditionalBranch,
+  DataTransform,
+  StorageConfig,
+  WebhookConfig,
+  BuiltInTemplate,
+  PipelineBuilder,
+  PipelineSchedule
+} from './pipeline-types';
