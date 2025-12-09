@@ -766,6 +766,346 @@ const optimized = lab.optimizeCost({
 
 ---
 
+## 🔄 Data Pipeline - Laboratory Automation
+
+Automate complex multi-step laboratory workflows with pipelines.
+
+### Create Simple Pipeline
+
+```typescript
+const pipeline = lab.createPipeline('my-workflow')
+  .addInstrument('dna-sequencer', { samples: 100 })
+  .addAIAnalysis('genomics-llm', 'variant-calling')
+  .addStorage('s3://results/genomics');
+
+const result = await pipeline.execute();
+console.log(`Pipeline completed in ${result.executionTime}ms`);
+```
+
+### Use Built-in Templates
+
+```typescript
+// Genomics Analysis: DNA sequencing → AI analysis → Storage
+const genomics = lab.createPipelineFromTemplate('genomics-analysis', {
+  samples: 100,
+  quality: 'high',
+  storageDestination: 's3://research/genomics'
+});
+
+await genomics.execute();
+```
+
+### Available Templates
+
+```typescript
+const templates = lab.listPipelineTemplates();
+// Returns:
+// - 'genomics-analysis' - Complete genomics workflow
+// - 'drug-discovery' - Compound screening & prediction
+// - 'quality-control' - Automated QC validation
+// - 'batch-processing' - High-throughput processing
+// - 'research-workflow' - Flexible research protocol
+```
+
+### Conditional Branching
+
+```typescript
+const pipeline = lab.createPipeline('quality-control')
+  .addInstrument('spectroscopy', { samples: 50 })
+  .addAIAnalysis('pathology-ai', 'quality-check')
+  .addCondition('QC Check', (data) => {
+    return data.results.qualityScore > 0.90;
+  })
+  .addCustom('Approve', async (context) => {
+    return { approved: true, timestamp: Date.now() };
+  })
+  .addWebhook('https://api.example.com/qc/approved');
+
+await pipeline.execute();
+```
+
+### Error Handling & Retries
+
+```typescript
+const pipeline = lab.createPipeline('robust-analysis')
+  .addInstrument('mass-spec', { samples: 100 })
+  .setTimeout(300000) // 5 minutes
+  .setRetry({
+    maxAttempts: 3,
+    backoff: 'exponential',
+    initialDelay: 2000,
+    maxDelay: 10000
+  })
+  .onFailure('retry')
+  .addAIAnalysis('chem-bert', 'analysis')
+  .addStorage('s3://results');
+
+// Pipeline will automatically retry on failure
+const result = await pipeline.execute();
+```
+
+### Data Transformation
+
+```typescript
+const pipeline = lab.createPipeline('drug-discovery')
+  .addInstrument('mass-spec', { samples: 50 })
+  .addAIAnalysis('drug-discovery', 'efficacy-prediction')
+  .addTransform((data) => {
+    // Filter safe compounds
+    const compounds = data.results.compounds;
+    const safe = compounds.filter(c => 
+      c.toxicity < 0.3 && c.efficacy > 0.7
+    );
+    
+    return {
+      safeCompounds: safe,
+      totalAnalyzed: compounds.length,
+      successRate: safe.length / compounds.length
+    };
+  }, 'Safety Filter')
+  .addStorage('s3://drug-discovery/results');
+
+await pipeline.execute();
+```
+
+### Parallel Processing
+
+```typescript
+const pipeline = lab.createPipeline('parallel-analysis')
+  // Run 3 analyses simultaneously
+  .addInstrument('spectroscopy', { samples: 100 })
+  .addInstrument('microscopy', { samples: 100 })
+  .addInstrument('mass-spec', { samples: 100 })
+  .parallel('spectroscopy', 'microscopy', 'mass-spec')
+  
+  // Combine results
+  .addTransform((data) => {
+    return { combined: true, analysisCount: 3 };
+  }, 'Combine Results')
+  
+  .addStorage('s3://parallel-results');
+
+await pipeline.execute();
+```
+
+### Real-Time Monitoring
+
+```typescript
+const pipeline = lab.createPipeline('monitored-research')
+  .addInstrument('dna-sequencer', { samples: 100 })
+  .addAIAnalysis('genomics-llm', 'analysis')
+  .addStorage('s3://results');
+
+// Listen to events
+pipeline.on('step.started', (event) => {
+  console.log(`Starting: ${event.data.stepName}`);
+});
+
+pipeline.on('step.completed', (event) => {
+  console.log(`Completed: ${event.data.stepName} (${event.data.duration}ms)`);
+});
+
+pipeline.on('step.failed', (event) => {
+  console.log(`Failed: ${event.data.error}`);
+});
+
+pipeline.on('pipeline.completed', (event) => {
+  console.log('Pipeline finished successfully!');
+});
+
+await pipeline.execute();
+```
+
+### Storage Integration
+
+```typescript
+// S3
+pipeline.addStorage('s3://bucket/path', 'json');
+
+// IPFS
+pipeline.addStorage('ipfs://QmHash', 'json');
+
+// Local filesystem
+pipeline.addStorage('file:///path/to/results', 'csv');
+
+// PostgreSQL
+pipeline.addStorage('postgres://localhost/database', 'json');
+
+// MongoDB
+pipeline.addStorage('mongodb://localhost/db/collection', 'json');
+```
+
+### Webhook Callbacks
+
+```typescript
+pipeline
+  .addInstrument('dna-sequencer', { samples: 100 })
+  .addWebhook('https://api.example.com/notify', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer YOUR_TOKEN',
+      'Content-Type': 'application/json'
+    }
+  });
+```
+
+### Custom Steps
+
+```typescript
+pipeline.addCustom('My Custom Step', async (context) => {
+  // Access previous results
+  const previousResult = context.variables.get('previous');
+  
+  // Your custom logic
+  const processed = await myCustomFunction(previousResult);
+  
+  // Return data for next step
+  return {
+    processed: true,
+    data: processed,
+    timestamp: Date.now()
+  };
+});
+```
+
+### Complete Drug Discovery Example
+
+```typescript
+const pipeline = lab.createPipeline('drug-discovery')
+  // Step 1: Mass Spectrometry
+  .addInstrument('mass-spec', {
+    samples: 50,
+    priority: 'quality'
+  })
+  .setTimeout(2400000) // 40 minutes
+  
+  // Step 2: Compound Identification
+  .addAIAnalysis('chem-bert', 'compound-identification')
+  
+  // Step 3: Efficacy Prediction
+  .addAIAnalysis('drug-discovery', 'efficacy-prediction')
+  
+  // Step 4: Safety Analysis
+  .addTransform((data) => {
+    const compounds = data.results.compounds;
+    const safe = compounds.filter(c => 
+      c.toxicity < 0.3 && c.efficacy > 0.7
+    );
+    
+    console.log(`Analyzed: ${compounds.length}`);
+    console.log(`Safe candidates: ${safe.length}`);
+    
+    return {
+      safeCompounds: safe,
+      totalAnalyzed: compounds.length,
+      successRate: safe.length / compounds.length
+    };
+  }, 'Safety Filter')
+  
+  // Step 5: Store Results
+  .addStorage('s3://drug-discovery/results', 'json')
+  
+  // Step 6: Notify Team
+  .addWebhook('https://api.example.com/notify/discovery')
+  
+  // Error handling
+  .setRetry({ maxAttempts: 3, backoff: 'exponential' })
+  .onFailure('retry');
+
+// Execute pipeline
+const result = await pipeline.execute();
+
+console.log(`Status: ${result.status}`);
+console.log(`Time: ${(result.executionTime / 1000 / 60).toFixed(1)} minutes`);
+console.log(`Steps completed: ${result.stepsCompleted}/${result.stepsCompleted + result.stepsFailed}`);
+```
+
+### Custom Pipeline Template
+
+```typescript
+import { PipelineTemplates } from '@lab402/sdk';
+
+// Register your custom template
+PipelineTemplates.register({
+  name: 'cancer-research',
+  description: 'Cancer research analysis pipeline',
+  version: '1.0.0',
+  steps: [
+    {
+      name: 'Tissue Analysis',
+      type: 'instrument',
+      config: {
+        instrument: 'microscopy',
+        samples: 50,
+        priority: 'quality'
+      }
+    },
+    {
+      name: 'Pathology AI',
+      type: 'ai-analysis',
+      config: {
+        aiModel: 'pathology-ai',
+        task: 'cancer-detection'
+      }
+    },
+    {
+      name: 'Treatment Prediction',
+      type: 'ai-analysis',
+      config: {
+        aiModel: 'medical-vision',
+        task: 'treatment-prediction'
+      }
+    },
+    {
+      name: 'Generate Report',
+      type: 'storage',
+      config: {
+        destination: 's3://cancer-research/reports',
+        format: 'pdf'
+      }
+    }
+  ],
+  tags: ['cancer', 'pathology', 'medical']
+});
+
+// Use your template
+const pipeline = lab.createPipelineFromTemplate('cancer-research');
+await pipeline.execute();
+```
+
+### Pipeline Features
+
+**Step Types:**
+- 🧪 `instrument` - Run laboratory instrument
+- 🤖 `ai-analysis` - AI model analysis
+- 🔄 `transform` - Data transformation
+- ❓ `condition` - Conditional branching
+- 💾 `storage` - Store results (S3/IPFS/DB)
+- 🔗 `webhook` - HTTP callback
+- ⚙️ `custom` - Custom function
+
+**Error Handling:**
+- ✅ Automatic retries with exponential backoff
+- ⏱️ Configurable timeouts per step
+- 🔁 Retry policies with max attempts
+- 🛡️ Graceful failure handling
+
+**Execution:**
+- ⚡ Parallel step execution
+- 📊 Real-time progress monitoring
+- 🎯 Conditional branching
+- 🔄 Data transformation between steps
+
+**Use Cases:**
+- 🧬 Automated genomics workflows
+- 💊 Drug discovery screening
+- ✅ Quality control validation
+- 📦 Batch processing
+- 🔬 Research protocols
+- 🔁 Reproducible experiments
+
+---
+
 ## 🔬 Sample Tracking & Metadata
 
 Track samples through their entire lifecycle with barcodes, quality checks, and full audit trails.
